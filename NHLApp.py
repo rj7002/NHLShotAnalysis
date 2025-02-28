@@ -33,7 +33,7 @@ def display_player_image(player_id, width2, caption2):
         f'</div>',
         unsafe_allow_html=True
     )
-st.markdown("<h1 style='text-align: center; font-size: 50px;'>NHL Shot Analysis</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; font-size: 100px;'>NHL Shot Analysis</h1>", unsafe_allow_html=True)
 season = st.selectbox('Select a season', list(range(2007,2025)))
 if season:
     url = f"https://peter-tanner.com/moneypuck/downloads/shots_{season}.zip"
@@ -226,11 +226,23 @@ if season:
         # Create the rink
         # fig = create_hockey_rink()
         # df = df[df['event'] == 'SHOT']
-        df['color'] = np.where(df['goal'] == 1,'gold','gray')
+        df['color'] = np.where(df['event'] == 'GOAL','gold',np.where(df['event'] == 'SHOT', 'green', 'red'))
 
         # Display the plot in Streamlit
         display_player_image(player_id=playerid,width2=300,caption2=f'{playername}')
         col1,col2 = st.columns(2)
+        hoverlabel = df.apply(lambda row:f"""
+                <b>Shooter:</b> {row['shooterName']}<br>
+                <b>Goalie:</b> {row['goalieNameForShot']}<br>
+                <b>Event:</b> {row['event']}<br>
+                <b>Shot Distance:</b> {round(row['shotDistance'],2)} ft<br>
+                <b>Shot Type:</b> {row['shotType']}<br>
+                <b>Period:</b> {row['period']}<br>
+                <b>Time:</b> {round(row['time']/60)}:{row['time']%60:02d}<br>
+                <b>Game:</b> {row['homeTeamCode']} vs {row['awayTeamCode']}<br>
+                <b>Season:</b> {row['season']}<br>
+
+                """, axis=1)
         if rinktype == 'Half':
             with col1:
                 fig = go.Figure()
@@ -240,7 +252,7 @@ if season:
                     mode='markers',
                     marker=dict(color=df['color'], size=10,opacity=0.5),
                     name='End Points',
-                    text=df['event'],
+                    hovertext=hoverlabel,
                         hoverinfo='text',
                 ))
                 create_hockey_rink(fig,setting='dzone',vertical=True)
@@ -282,7 +294,7 @@ if season:
                     mode='markers',
                     marker=dict(color=df['color'], size=10,opacity=0.5),
                     name='End Points',
-                    text=df['event'],
+                    hovertext=hoverlabel,
                         hoverinfo='text',
                 ))
                 create_hockey_rink(fig,setting='full',vertical=False)
@@ -324,10 +336,10 @@ if season:
             st.plotly_chart(fig)
         c5,c6 = st.columns(2)
         with c5:
-            shootTime = df.groupby(['shotType','shooterTimeOnIce'])['shotID'].count().reset_index()
-            fig = px.line(shootTime,x='shooterTimeOnIce',y='shotID',color='shotType',title='Number of Shots Over Time')
+            shootTime = df.groupby(['shotType','shooterTimeOnIce'])['shotID'].count().reset_index().rename(columns={'shotID':'Shots'})
+            fig = px.line(shootTime,x='shooterTimeOnIce',y='Shots',color='shotType',title='Number of Shots Over Time')
             st.plotly_chart(fig)
         with c6:
-            shotsPerGame = df.groupby(['game_id','period'])['shotID'].count().reset_index()
-            fig = px.line(shotsPerGame,x='game_id',y='shotID',color='period',title='Shots Per Game')
+            shotsPerGame = df.groupby(['game_id','period'])['shotID'].count().reset_index().rename(columns={'shotID':'Shots'})
+            fig = px.line(shotsPerGame,x='game_id',y='Shots',color='period',title='Shots Per Game')
             st.plotly_chart(fig)
