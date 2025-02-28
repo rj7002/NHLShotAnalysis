@@ -136,15 +136,16 @@ if season:
         period_options = df['period'].unique()
         selected_period = st.sidebar.multiselect("Select Period", period_options,default=period_options.tolist())
         df = df[df['period'].isin(selected_period)]
-
-        if filter == 'Shooter':
-            player_options = df['goalieNameForShot'].unique()
-            selected_player = st.sidebar.multiselect("Select Goalie", player_options,default=player_options.tolist())
-            df = df[df['goalieNameForShot'].isin(selected_player)]
-        elif filter == 'Goalie':
-            player_options = df['shooterName'].unique()
-            selected_player = st.sidebar.multiselect("Select Shooter", player_options,default=player_options.tolist())
-            df = df[df['shooterName'].isin(selected_player)]
+        filterbyplayer = st.sidebar.toggle('Filter by Player')
+        if filterbyplayer:
+            if filter == 'Shooter':
+                player_options = df['goalieNameForShot'].unique()
+                selected_player = st.sidebar.multiselect("Select Goalie", player_options)
+                df = df[df['goalieNameForShot'].isin(selected_player)]
+            elif filter == 'Goalie':
+                player_options = df['shooterName'].unique()
+                selected_player = st.sidebar.multiselect("Select Shooter", player_options)
+                df = df[df['shooterName'].isin(selected_player)]
 
         if filter == 'Shooter':
             playerid = df['shooterPlayerId'].iloc[0]
