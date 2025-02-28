@@ -4,6 +4,7 @@ import io
 import pandas as pd
 import streamlit as st 
 import plotly.express as px
+st.set_page_config(page_title='NHL Shot Analysis',layout='wide',page_icon='🏒')
 # Step 1: Download the ZIP file from the URL
 def display_player_image(player_id, width2, caption2):
     # Construct the URL for the player image using the player ID
