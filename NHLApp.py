@@ -64,7 +64,6 @@ if season:
         else:
             playerid = df['goalieIdForShot'].iloc[0]
         rinktype = st.selectbox('Rink Type',['Full','Half'])
-        import matplotlib.pyplot as plt
         import numpy as np
 
     
