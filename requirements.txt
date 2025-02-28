@@ -1,0 +1,6 @@
+pandas
+plotly
+zipfile
+streamlit
+numpy
+requests
