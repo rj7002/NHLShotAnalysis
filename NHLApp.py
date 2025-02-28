@@ -3,9 +3,6 @@ import zipfile
 import io
 import pandas as pd
 import streamlit as st 
-import seaborn as sns
-import matplotlib.pyplot as plt
-from sportypy.surfaces.hockey import NHLRink
 import plotly.express as px
 # Step 1: Download the ZIP file from the URL
 def display_player_image(player_id, width2, caption2):
