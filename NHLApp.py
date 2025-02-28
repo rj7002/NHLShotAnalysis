@@ -5,10 +5,41 @@ import pandas as pd
 import streamlit as st 
 import plotly.express as px
 st.set_page_config(page_title='NHL Shot Analysis',layout='wide',page_icon='🏒')
+st.sidebar.title('Filters')
+
+
 # Step 1: Download the ZIP file from the URL
 def display_player_image(player_id, width2, caption2):
     # Construct the URL for the player image using the player ID
     image_url = f"https://assets.nhle.com/mugs/nhl/latest/{player_id}.png"
+    
+    # Check if the image URL returns a successful response
+    response = requests.head(image_url)
+    
+    if response.status_code == 200:
+        # If image is available, display it
+        st.markdown(
+        f'<div style="display: flex; flex-direction: column; align-items: center;">'
+        f'<img src="{image_url}" style="width: {width2}px;">'
+        f'<p style="text-align: center;">{caption2}</p>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+    
+        # st.image(image_url, width=width2, caption=caption2)
+    else:
+        image_url = "https://assets.nhle.com/mugs/nhl/latest/8481773.png"
+        st.markdown(
+        f'<div style="display: flex; flex-direction: column; align-items: center;">'
+        f'<img src="{image_url}" style="width: {width2}px;">'
+        f'<p style="text-align: center;">{"Image Unavailable"}</p>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+def display_player_image2(player_id, width2, caption2):
+    # Construct the URL for the player image using the player ID
+    image_url = f"https://assets.nhle.com/logos/nhl/svg/{player_id}_dark.svg"
+
     
     # Check if the image URL returns a successful response
     response = requests.head(image_url)
@@ -51,18 +82,73 @@ if season:
             csv_filename = z.namelist()[0]  # Update this if you know the exact filename
             with z.open(csv_filename) as csv_file:
                 df = pd.read_csv(csv_file)
-        filter = st.selectbox('Filter by',['Goalie','Shooter'])
+        filter = st.selectbox('Filter by',['Shooter','Goalie','Team'])
         if filter == 'Shooter':
             playernames = df['shooterName'].unique()
             playername = st.selectbox('Select a player',playernames)
             df = df[df['shooterName'] == playername]
-        else:
+        elif filter == 'Goalie':
             playernames = df['goalieNameForShot'].unique()
             playername = st.selectbox('Select a player',playernames)
             df = df[df['goalieNameForShot'] == playername]
+        else:
+            teamnames = df['teamCode'].unique()
+            teamname = st.selectbox('Select a player',teamnames)
+            df = df[df['teamCode'] == teamname]
+        time_min, time_max = st.sidebar.slider(
+            "Select Time Range", 
+            min_value=int(df['time'].min()), 
+            max_value=int(df['time'].max()), 
+            value=(int(df['time'].min()), int(df['time'].max())), 
+            step=1
+        )
+        df = df[(df['time'] >= time_min) & (df['time'] <= time_max)]
+
+        # Shot Distance filter slider
+        shot_distance_min, shot_distance_max = st.sidebar.slider(
+            "Select Shot Distance Range", 
+            min_value=int(df['shotDistance'].min()), 
+            max_value=int(df['shotDistance'].max()), 
+            value=(int(df['shotDistance'].min()), int(df['shotDistance'].max())), 
+            step=1
+        )
+        df = df[(df['shotDistance'] >= shot_distance_min) & (df['shotDistance'] <= shot_distance_max)]
+
+        shot_angle_min, shot_angle_max = st.sidebar.slider(
+            "Select Shot Angle Range", 
+            min_value=int(df['shotAngle'].min()), 
+            max_value=int(df['shotAngle'].max()), 
+            value=(int(df['shotAngle'].min()), int(df['shotAngle'].max())), 
+            step=1
+        )
+        df = df[(df['shotAngle'] >= shot_angle_min) & (df['shotAngle'] <= shot_angle_max)]
+
+        # Opponent Team filter (multiselect)
+        team_options = df['awayTeamCode'].unique()
+        selected_teams = st.sidebar.multiselect("Select Opponent Team(s)", team_options, default=team_options.tolist())
+        df = df[df['awayTeamCode'].isin(selected_teams)]
+
+        # Event filter (selectbox)
+        event_options = df['event'].unique()
+        selected_event = st.sidebar.multiselect("Select Event Type", event_options,default=event_options.tolist())
+        df = df[df['event'].isin(selected_event)]
+
+        period_options = df['period'].unique()
+        selected_period = st.sidebar.multiselect("Select Period", period_options,default=period_options.tolist())
+        df = df[df['period'].isin(selected_period)]
+
+        if filter == 'Shooter':
+            player_options = df['goalieNameForShot'].unique()
+            selected_player = st.sidebar.multiselect("Select Goalie", player_options,default=player_options.tolist())
+            df = df[df['goalieNameForShot'].isin(selected_player)]
+        elif filter == 'Goalie':
+            player_options = df['shooterName'].unique()
+            selected_player = st.sidebar.multiselect("Select Shooter", player_options,default=player_options.tolist())
+            df = df[df['shooterName'].isin(selected_player)]
+
         if filter == 'Shooter':
             playerid = df['shooterPlayerId'].iloc[0]
-        else:
+        elif filter == 'Goalie':
             playerid = df['goalieIdForShot'].iloc[0]
         rinktype = st.selectbox('Rink Type',['Full','Half'])
         import numpy as np
@@ -229,7 +315,17 @@ if season:
         df['color'] = np.where(df['event'] == 'GOAL','gold',np.where(df['event'] == 'SHOT', 'green', 'red'))
 
         # Display the plot in Streamlit
-        display_player_image(player_id=playerid,width2=300,caption2=f'{playername}')
+        if filter != 'Team':
+            display_player_image(player_id=playerid,width2=300,caption2=f'{playername}')
+        else:
+            teamname = teamname.replace('.','')
+            if teamname == 'SJ':
+                teamname = 'SJS'
+            elif teamname == 'TB':
+                teamname = 'TBL'
+            elif teamname == 'LA':
+                teamname = 'LAK'
+            display_player_image2(player_id=teamname,width2=400,caption2='')
         col1,col2 = st.columns(2)
         hoverlabel = df.apply(lambda row:f"""
                 <b>Shooter:</b> {row['shooterName']}<br>
@@ -343,3 +439,5 @@ if season:
             shotsPerGame = df.groupby(['game_id','period'])['shotID'].count().reset_index().rename(columns={'shotID':'Shots'})
             fig = px.line(shotsPerGame,x='game_id',y='Shots',color='period',title='Shots Per Game')
             st.plotly_chart(fig)
+st.sidebar.markdown(f'Data from [moneypuck.com](https://moneypuck.com/)')
+
