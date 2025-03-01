@@ -360,8 +360,8 @@ if season:
                 fig.add_trace(go.Histogram2dContour(
                     x=-df['yCordAdjusted'],  # Adjusted x coordinates
                     y=-df['xCordAdjusted'],  # Adjusted y coordinates
-                    colorscale='Viridis',  # You can choose other colorscales
-                    ncontours=20,  # Number of contour levels
+                    colorscale='hot',  # You can choose other colorscales
+                    # ncontours=20,  # Number of contour levels
                     colorbar=dict(title="Density"),
                     showscale=False,
                     opacity=0.6,  # To blend with the scatter plot
@@ -378,8 +378,8 @@ if season:
                 fig.add_trace(go.Histogram2dContour(
                     y=df['yCord'],  # Adjusted x coordinates
                     x=df['xCord'],  # Adjusted y coordinates
-                    colorscale='Viridis',  # You can choose other colorscales
-                    ncontours=20,  # Number of contour levels
+                    colorscale='hot',  # You can choose other colorscales
+                    # ncontours=20,  # Number of contour levels
                     colorbar=dict(title="Density"),
                     showscale=False,
                     opacity=0.6,  # To blend with the scatter plot
