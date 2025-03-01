@@ -347,6 +347,7 @@ if season:
                     y=-df['xCordAdjusted'],
                     x=-df['yCordAdjusted'],
                     mode='markers',
+                    showscale=False,
                     marker=dict(color=df['color'], size=10,opacity=0.5),
                     name='End Points',
                     hovertext=hoverlabel,
@@ -366,8 +367,8 @@ if season:
                     opacity=0.6,  # To blend with the scatter plot
                     name='Density',
                     hoverinfo='none'  # Don't show hover for the density contour
-                    ,zmin=0,
-                    zmax=1
+                    # ,zmin=0,
+                    # zmax=1
                 ))
                 create_hockey_rink(fig,setting='dzone',vertical=True)
                 st.plotly_chart(fig)
@@ -380,6 +381,7 @@ if season:
                     colorscale='Viridis',  # You can choose other colorscales
                     ncontours=20,  # Number of contour levels
                     colorbar=dict(title="Density"),
+                    showscale=False,
                     opacity=0.6,  # To blend with the scatter plot
                     name='Density',
                     hoverinfo='none'  # Don't show hover for the density contour
@@ -392,6 +394,7 @@ if season:
                     x=df['xCord'],
                     y=df['yCord'],
                     mode='markers',
+                    showscale=False,
                     marker=dict(color=df['color'], size=10,opacity=0.5),
                     name='End Points',
                     hovertext=hoverlabel,
