@@ -368,7 +368,7 @@ if season:
                     name='Density',
                     hoverinfo='none'  # Don't show hover for the density contour
                     ,zmin=1,
-                    # zmax=1
+                    zmax=1
                 ))
                 create_hockey_rink(fig,setting='dzone',vertical=True)
                 st.plotly_chart(fig)
