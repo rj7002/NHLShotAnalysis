@@ -361,7 +361,7 @@ if season:
                     x=-df['yCordAdjusted'],  # Adjusted x coordinates
                     y=-df['xCordAdjusted'],  # Adjusted y coordinates
                     colorscale='hot',  # You can choose other colorscales
-                    # ncontours=20,  # Number of contour levels
+                    ncontours=20,  # Number of contour levels
                     colorbar=dict(title="Density"),
                     showscale=False,
                     opacity=0.6,  # To blend with the scatter plot
@@ -379,7 +379,7 @@ if season:
                     y=df['yCord'],  # Adjusted x coordinates
                     x=df['xCord'],  # Adjusted y coordinates
                     colorscale='hot',  # You can choose other colorscales
-                    # ncontours=20,  # Number of contour levels
+                    ncontours=20,  # Number of contour levels
                     colorbar=dict(title="Density"),
                     showscale=False,
                     opacity=0.6,  # To blend with the scatter plot
