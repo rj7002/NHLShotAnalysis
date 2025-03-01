@@ -367,7 +367,7 @@ if season:
                     opacity=0.6,  # To blend with the scatter plot
                     name='Density',
                     hoverinfo='none'  # Don't show hover for the density contour
-                    # ,zmin=0,
+                    ,zmin=1,
                     # zmax=1
                 ))
                 create_hockey_rink(fig,setting='dzone',vertical=True)
