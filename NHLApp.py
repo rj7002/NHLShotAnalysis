@@ -95,6 +95,9 @@ if season:
             teamnames = df['teamCode'].unique()
             teamname = st.selectbox('Select a player',teamnames)
             df = df[df['teamCode'] == teamname]
+        uniqueshots = df['shotType'].unique()
+        shotType = st.sidebar.multiselect('Select shot type',uniqueshots,default=uniqueshots.tolist())
+        df = df[df['shotType'].isin(shotType)]
         time_min, time_max = st.sidebar.slider(
             "Select Time Range", 
             min_value=int(df['time'].min()), 
@@ -136,8 +139,7 @@ if season:
         period_options = df['period'].unique()
         selected_period = st.sidebar.multiselect("Select Period", period_options,default=period_options.tolist())
         df = df[df['period'].isin(selected_period)]
-        filterbyplayer = st.sidebar.toggle('Filter by Player')
-        if filterbyplayer:
+        if st.sidebar.toggle('Filter by players'):
             if filter == 'Shooter':
                 player_options = df['goalieNameForShot'].unique()
                 selected_player = st.sidebar.multiselect("Select Goalie", player_options,default=player_options.tolist())
@@ -332,6 +334,8 @@ if season:
                 <b>Shooter:</b> {row['shooterName']}<br>
                 <b>Goalie:</b> {row['goalieNameForShot']}<br>
                 <b>Event:</b> {row['event']}<br>
+                <b>Zone:</b> {row['location']}<br>
+                <b>Angle:</b> {row['shotAngle']}<br>
                 <b>Shot Distance:</b> {round(row['shotDistance'],2)} ft<br>
                 <b>Shot Type:</b> {row['shotType']}<br>
                 <b>Period:</b> {row['period']}<br>
@@ -339,7 +343,9 @@ if season:
                 <b>Game:</b> {row['homeTeamCode']} vs {row['awayTeamCode']}<br>
                 <b>Season:</b> {row['season']}<br>
 
+
                 """, axis=1)
+        df['symbol'] = np.where(df['goal'] == 1, 'star', np.where(df['event'] == 'MISS', 'x', 'circle'))
         if rinktype == 'Half':
             with col1:
                 fig = go.Figure()
@@ -347,8 +353,8 @@ if season:
                     y=-df['xCordAdjusted'],
                     x=-df['yCordAdjusted'],
                     mode='markers',
+                    marker=dict(color=df['color'], size=10,opacity=0.5,symbol=df['symbol']),
                     showlegend=False,
-                    marker=dict(color=df['color'], size=10,opacity=0.5),
                     name='End Points',
                     hovertext=hoverlabel,
                         hoverinfo='text',
@@ -360,15 +366,23 @@ if season:
                 fig.add_trace(go.Histogram2dContour(
                     x=-df['yCordAdjusted'],  # Adjusted x coordinates
                     y=-df['xCordAdjusted'],  # Adjusted y coordinates
-                    colorscale='hot',  # You can choose other colorscales
-                    ncontours=20,  # Number of contour levels
+                    # colorscale='Magma',  # You can choose other colorscales
+                    # ncontours=20,  # Number of contour levels
                     colorbar=dict(title="Density"),
                     showscale=False,
-                    opacity=0.6,  # To blend with the scatter plot
+                    # opacity=0.6,  # To blend with the scatter plot
                     name='Density',
                     hoverinfo='none'  # Don't show hover for the density contour
-                    ,zmin=1,
-                    zmax=1
+                    ,
+                    colorscale = [
+                        [0, 'rgb(255, 255, 255)'],  # White
+                         [0.01, 'rgb(0, 0, 0)'],  # Black
+                        [0.25, 'rgb(169, 169, 169)'],  # Gray
+                        [0.5, 'rgb(255, 0, 0)'],    # Red
+                        [1, 'rgb(255, 255, 0)']     # Yellow
+                    ]
+
+
                 ))
                 create_hockey_rink(fig,setting='dzone',vertical=True)
                 st.plotly_chart(fig)
@@ -378,13 +392,23 @@ if season:
                 fig.add_trace(go.Histogram2dContour(
                     y=df['yCord'],  # Adjusted x coordinates
                     x=df['xCord'],  # Adjusted y coordinates
-                    colorscale='hot',  # You can choose other colorscales
-                    ncontours=20,  # Number of contour levels
+                    # colorscale='Magma',  # You can choose other colorscales
+                    # ncontours=20,  # Number of contour levels
                     colorbar=dict(title="Density"),
-                    showscale=False,
-                    opacity=0.6,  # To blend with the scatter plot
+                    # opacity=0.6,  # To blend with the scatter plot
                     name='Density',
+                    showscale=False,
                     hoverinfo='none'  # Don't show hover for the density contour
+                    ,
+                    colorscale = [
+                        [0, 'rgb(255, 255, 255)'],  # White
+                          [0.01, 'rgb(0, 0, 0)'],  # Black
+                        [0.25, 'rgb(169, 169, 169)'],  # Gray
+                        [0.5, 'rgb(255, 0, 0)'],    # Red
+                        [1, 'rgb(255, 255, 0)']     # Yellow
+                    ]
+
+
                 ))
                 create_hockey_rink(fig,setting='full',vertical=False)
                 st.plotly_chart(fig)
@@ -394,10 +418,10 @@ if season:
                     x=df['xCord'],
                     y=df['yCord'],
                     mode='markers',
-                    showlegend=False,
-                    marker=dict(color=df['color'], size=10,opacity=0.5),
+                    marker=dict(color=df['color'], size=10,opacity=0.5,symbol=df['symbol']),
                     name='End Points',
                     hovertext=hoverlabel,
+                    showlegend=False,
                         hoverinfo='text',
                 ))
                 create_hockey_rink(fig,setting='full',vertical=False)
