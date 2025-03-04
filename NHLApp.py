@@ -390,8 +390,8 @@ if season:
             with col2:
                 fig = go.Figure()
                 fig.add_trace(go.Histogram2dContour(
-                    y=df['yCord'],  # Adjusted x coordinates
-                    x=df['xCord'],  # Adjusted y coordinates
+                    y=df['xCord'],  # Adjusted x coordinates
+                    x=df['yCord'],  # Adjusted y coordinates
                     # colorscale='Magma',  # You can choose other colorscales
                     # ncontours=20,  # Number of contour levels
                     colorbar=dict(title="Density"),
