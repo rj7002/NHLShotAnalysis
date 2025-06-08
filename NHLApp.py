@@ -389,9 +389,32 @@ if season:
         else:
             with col2:
                 fig = go.Figure()
+                df1 = df[df['xCord'] < 0]
+                df2 = df[df['xCord'] >= 0]
+                 fig.add_trace(go.Histogram2dContour(
+                    y=df1['yCord'],  # Adjusted x coordinates
+                    x=df1['xCord'],  # Adjusted y coordinates
+                    # colorscale='Magma',  # You can choose other colorscales
+                    # ncontours=20,  # Number of contour levels
+                    colorbar=dict(title="Density"),
+                    # opacity=0.6,  # To blend with the scatter plot
+                    name='Density',
+                    showscale=False,
+                    hoverinfo='none'  # Don't show hover for the density contour
+                    ,
+                    colorscale = [
+                        [0, 'rgb(255, 255, 255)'],  # White
+                          [0.01, 'rgb(0, 0, 0)'],  # Black
+                        [0.25, 'rgb(169, 169, 169)'],  # Gray
+                        [0.5, 'rgb(255, 0, 0)'],    # Red
+                        [1, 'rgb(255, 255, 0)']     # Yellow
+                    ]
+
+
+                ))
                 fig.add_trace(go.Histogram2dContour(
-                    x=df['xCord'],  # Adjusted x coordinates
-                    y=df['yCord'],  # Adjusted y coordinates
+                    y=df2['yCord'],  # Adjusted x coordinates
+                    x=df2['xCord'],  # Adjusted y coordinates
                     # colorscale='Magma',  # You can choose other colorscales
                     # ncontours=20,  # Number of contour levels
                     colorbar=dict(title="Density"),
