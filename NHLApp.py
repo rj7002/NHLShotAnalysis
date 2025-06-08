@@ -391,7 +391,7 @@ if season:
                 fig = go.Figure()
                 df1 = df[df['xCord'] < 0]
                 df2 = df[df['xCord'] >= 0]
-                 fig.add_trace(go.Histogram2dContour(
+                fig.add_trace(go.Histogram2dContour(
                     y=df1['yCord'],  # Adjusted x coordinates
                     x=df1['xCord'],  # Adjusted y coordinates
                     # colorscale='Magma',  # You can choose other colorscales
