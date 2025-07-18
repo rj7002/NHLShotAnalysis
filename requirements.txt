@@ -3,5 +3,4 @@ plotly
 streamlit
 numpy
 requests
-pickle
 lightgbm
