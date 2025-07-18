@@ -590,8 +590,8 @@ if season:
                 fig = go.Figure()
                 if xGoal:
                     fig.add_trace(go.Scatter(
-                        y=-df['xCordAdjusted'],
-                        x=-df['yCordAdjusted'],
+                        y=df['yCord'],
+                        x=df['xCord'],
                         mode='markers',
                         marker=dict(color=df['color'], size=10,opacity=df['xG'],symbol=df['symbol']),
                         showlegend=False,
