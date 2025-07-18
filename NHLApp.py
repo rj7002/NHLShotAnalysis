@@ -4,10 +4,71 @@ import io
 import pandas as pd
 import streamlit as st 
 import plotly.express as px
+import json
+import re
 st.set_page_config(page_title='NHL Shot Analysis',layout='wide',page_icon='🏒')
 st.sidebar.title('Filters')
 
+API_URL = "https://api.sambanova.ai/v1/chat/completions"
+API_KEY = "82c3b4bb-1d1b-4746-9ab6-21db50664370"
+HEADERS = {
+    'Authorization': f'Bearer {API_KEY}',
+    'Content-Type': 'application/json'
+}
 
+def get_team_scouting_report(player_summary):
+        # Construct payload
+        payload = {
+            "model": "DeepSeek-R1-Distill-Llama-70B",
+            "messages": [
+                # {"role": "system", "content": "You are an expert hockey scout analyzing data from a shot attempt from an NHL game. Give insights about the shot based on the data given and analyze the shot in detail."},
+                {
+  "role": "system",
+  "content": "You are a professional NHL hockey scout analyzing a single shot attempt from a game. Based on the provided shot data, generate a standardized scouting report with the following structure:\n\n1. **Shot Overview** – Summarize key shot details (e.g., shooter, shot type, distance, angle, location).\n2. **Scoring Chance Assessment** – Rate the shot’s danger level (low / medium / high) and explain your reasoning.\n3. **Goaltender Analysis** – Evaluate the goalie’s likely positioning and difficulty in stopping the shot.\n4. **Play Context** – Describe how the shot likely developed (e.g., off a rush, rebound, cycle).\n5. **Scout’s Evaluation** – Give a concise expert opinion on the shot quality, player decision-making, and any notable observations.\n\nAlways respond using this five-part format. Keep tone professional, analytical, and concise."
+},
+
+                {"role": "user", "content": player_summary}
+            ],
+            "max_tokens": 10000, 
+            "temperature": 0.5,
+            "top_p": 0.9,
+            "top_k": 50,
+            "stream": True  
+        }
+
+        response = requests.post(API_URL, headers=HEADERS, json=payload, stream=True)
+
+        if response.status_code == 200:
+            output_placeholder = st.empty()
+            full_report = ""
+
+            for line in response.iter_lines():
+                if line:
+                    try:
+                        data = line.decode('utf-8')
+                        if data.startswith("data:"):  
+                            response_data = data.split("data:")[1].strip()
+                            
+                            if not response_data:
+                                continue
+                            
+                            chunk = json.loads(response_data)
+                            content = chunk["choices"][0]["delta"].get("content", "")
+                            
+                            full_report += content
+
+                            full_report = re.sub(r"<think>.*?</think>", "", full_report, flags=re.DOTALL).strip()
+
+                            output_placeholder.code(full_report, language="markdown")
+
+                    except Exception as e:
+                        st.error(f"Error processing stream: {e}")
+                        break
+            return full_report
+        else:
+            st.error(f"Error: {response.status_code} - {response.text}")
+            return None
+        
 # Step 1: Download the ZIP file from the URL
 def display_player_image(player_id, width2, caption2):
     # Construct the URL for the player image using the player ID
@@ -64,24 +125,74 @@ def display_player_image2(player_id, width2, caption2):
         f'</div>',
         unsafe_allow_html=True
     )
-st.markdown("<h1 style='text-align: center; font-size: 100px;'>NHL Shot Analysis</h1>", unsafe_allow_html=True)
-season = st.selectbox('Select a season', list(range(2007,2025)))
-if season:
+
+finalfeats = ['season',  'time',
+       'timeSinceLastEvent', 'shotGoalieFroze', 'shotPlayStopped',
+       'awayTeamGoals', 'xCord', 'yCord', 'xCordAdjusted', 'yCordAdjusted',
+       'shotAngle', 'shotAngleAdjusted', 'shotAnglePlusRebound',
+       'shotAngleReboundRoyalRoad', 'shotDistance', 'shotOnEmptyNet',
+       'shotRebound', 'shotAnglePlusReboundSpeed', 'speedFromLastEvent',
+       'lastEventxCord', 'lastEventyCord', 'distanceFromLastEvent',
+       'lastEventShotAngle', 'lastEventShotDistance', 'homeEmptyNet',
+       'awayEmptyNet', 'homeSkatersOnIce', 'awaySkatersOnIce',
+       'awayPenalty1TimeLeft', 'awayPenalty1Length', 'homePenalty1TimeLeft',
+       'homePenalty1Length', 'playerNumThatDidEvent',
+       'lastEventxCord_adjusted', 'lastEventyCord_adjusted',
+       'timeSinceFaceoff', 'shooterPlayerId', 'shooterTimeOnIce',
+       'shooterTimeOnIceSinceFaceoff', 'shootingTeamForwardsOnIce',
+       'shootingTeamDefencemenOnIce', 'shootingTeamAverageTimeOnIce',
+       'shootingTeamAverageTimeOnIceOfForwards',
+       'shootingTeamAverageTimeOnIceOfDefencemen', 'shootingTeamMaxTimeOnIce',
+       'shootingTeamMaxTimeOnIceOfForwards',
+       'shootingTeamMaxTimeOnIceOfDefencemen', 'shootingTeamMinTimeOnIce',
+       'shootingTeamMinTimeOnIceOfForwards',
+       'shootingTeamMinTimeOnIceOfDefencemen',
+       'shootingTeamAverageTimeOnIceSinceFaceoff',
+       'shootingTeamAverageTimeOnIceOfForwardsSinceFaceoff',
+       'shootingTeamAverageTimeOnIceOfDefencemenSinceFaceoff',
+       'shootingTeamMaxTimeOnIceSinceFaceoff',
+       'shootingTeamMaxTimeOnIceOfForwardsSinceFaceoff',
+       'shootingTeamMaxTimeOnIceOfDefencemenSinceFaceoff',
+       'shootingTeamMinTimeOnIceSinceFaceoff',
+       'shootingTeamMinTimeOnIceOfForwardsSinceFaceoff',
+       'shootingTeamMinTimeOnIceOfDefencemenSinceFaceoff',
+       'defendingTeamForwardsOnIce', 'defendingTeamDefencemenOnIce',
+       'defendingTeamAverageTimeOnIce',
+       'defendingTeamAverageTimeOnIceOfForwards',
+       'defendingTeamAverageTimeOnIceOfDefencemen',
+       'defendingTeamMaxTimeOnIce', 'defendingTeamMaxTimeOnIceOfForwards',
+       'defendingTeamMaxTimeOnIceOfDefencemen', 'defendingTeamMinTimeOnIce',
+       'defendingTeamMinTimeOnIceOfForwards',
+       'defendingTeamMinTimeOnIceOfDefencemen',
+       'defendingTeamAverageTimeOnIceSinceFaceoff',
+       'defendingTeamAverageTimeOnIceOfForwardsSinceFaceoff',
+       'defendingTeamAverageTimeOnIceOfDefencemenSinceFaceoff',
+       'defendingTeamMaxTimeOnIceSinceFaceoff',
+       'defendingTeamMaxTimeOnIceOfForwardsSinceFaceoff',
+       'defendingTeamMaxTimeOnIceOfDefencemenSinceFaceoff',
+       'defendingTeamMinTimeOnIceSinceFaceoff',
+       'defendingTeamMinTimeOnIceOfForwardsSinceFaceoff',
+       'defendingTeamMinTimeOnIceOfDefencemenSinceFaceoff', 'offWing',
+       'arenaAdjustedShotDistance', 'arenaAdjustedXCord', 'arenaAdjustedYCord',
+       'arenaAdjustedYCordAbs', 'timeDifferenceSinceChange',
+       'averageRestDifference', 'isHomeTeam', 'shotWasOnGoal',
+       'arenaAdjustedXCordABS']
+@st.cache_data
+def load_data(season):
     url = f"https://peter-tanner.com/moneypuck/downloads/shots_{season}.zip"
     response = requests.get(url)
 
-    # Check if the request was successful
     if response.status_code == 200:
-        # Step 2: Open the ZIP file from the response content
         with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-            # List the files inside the ZIP to find the CSV file
-            print("Files in the ZIP archive:", z.namelist())
             
-            # Step 3: Read the CSV file into a pandas DataFrame
-            # Assuming the CSV file is the first in the list or you can specify the filename
-            csv_filename = z.namelist()[0]  # Update this if you know the exact filename
+            csv_filename = z.namelist()[0] 
             with z.open(csv_filename) as csv_file:
                 df = pd.read_csv(csv_file)
+                return df
+st.markdown("<h1 style='text-align: center; font-size: 100px;'>NHL Shot Analysis</h1>", unsafe_allow_html=True)
+season = st.selectbox('Select a season', list(range(2007,2026)))
+if season:
+        df = load_data(season)
         filter = st.selectbox('Filter by',['Shooter','Goalie','Team'])
         if filter == 'Shooter':
             playernames = df['shooterName'].unique()
@@ -316,7 +427,13 @@ if season:
         # fig = create_hockey_rink()
         # df = df[df['event'] == 'SHOT']
         df['color'] = np.where(df['event'] == 'GOAL','gold',np.where(df['event'] == 'SHOT', 'green', 'red'))
-
+        modelinput = df[finalfeats]
+        import pickle
+        with open('/Users/ryan/Desktop/ShotQuality/nhlshotmodel.pkl', 'rb') as f:
+            loaded_model = pickle.load(f)
+        preds = loaded_model.predict_proba(modelinput)[:, 1]
+        df['xG'] = preds
+        # st.write(df)
         # Display the plot in Streamlit
         if filter != 'Team':
             display_player_image(player_id=playerid,width2=300,caption2=f'{playername}')
@@ -353,14 +470,35 @@ if season:
                     y=-df['xCordAdjusted'],
                     x=-df['yCordAdjusted'],
                     mode='markers',
-                    marker=dict(color=df['color'], size=10,opacity=0.5,symbol=df['symbol']),
+                    marker=dict(color=df['color'], size=10,opacity=df['xG'],symbol=df['symbol']),
                     showlegend=False,
                     name='End Points',
                     hovertext=hoverlabel,
                         hoverinfo='text',
                 ))
                 create_hockey_rink(fig,setting='dzone',vertical=True)
-                st.plotly_chart(fig)
+                data = st.plotly_chart(fig,on_select='rerun')
+                x = data["selection"]["points"][0]["x"]
+                y = data["selection"]["points"][0]["y"]
+
+                modeldata = df[(df['xCord'] == x) & (df['yCord'] == y)]
+                row_values_with_columns = [f"{col}: {value}" for col, value in modeldata.items()]
+                data_summary = "\n".join(row_values_with_columns)
+
+
+                # xG = modeldata['xGoal'].iloc[0]
+                # modelinput = modeldata[finalfeats]
+                # import pickle
+                # with open('/Users/ryan/Desktop/ShotQuality/nhlshotmodel.pkl', 'rb') as f:
+                #     loaded_model = pickle.load(f)
+                # pred = loaded_model.predict_proba(modelinput)[:, 1][0]
+                # if pred*100 < 0:
+                #     predstr = round(100*pred,8)
+                # else:
+                #     predstr = round(100*pred,2)
+                # st.write(f"xGAct {xG*100}")
+                st.subheader(f"xG: {modeldata['xG'].iloc[0]*100}%")
+                report = get_team_scouting_report(data_summary)
             with col2:
                 fig = go.Figure()
                 fig.add_trace(go.Histogram2dContour(
@@ -441,14 +579,34 @@ if season:
                     x=df['xCord'],
                     y=df['yCord'],
                     mode='markers',
-                    marker=dict(color=df['color'], size=10,opacity=0.5,symbol=df['symbol']),
+                    marker=dict(color=df['color'], size=10,opacity=df['xG'],symbol=df['symbol']),
                     name='End Points',
                     hovertext=hoverlabel,
                     showlegend=False,
                         hoverinfo='text',
                 ))
                 create_hockey_rink(fig,setting='full',vertical=False)
-                st.plotly_chart(fig)
+                data = st.plotly_chart(fig,on_select='rerun')
+                if data and 'selection' in data and 'points' in data['selection'] and len(data['selection']['points']) > 0:
+                    x = data["selection"]["points"][0]["x"]
+                    y = data["selection"]["points"][0]["y"]
+
+                    modeldata = df[(df['xCord'] == x) & (df['yCord'] == y)]
+                    row_values_with_columns = [f"{col}: {value}" for col, value in modeldata.items()]
+                    data_summary = "\n".join(row_values_with_columns)
+                    # xG = modeldata['xGoal'].iloc[0]
+                    # modelinput = modeldata[finalfeats]
+                    # import pickle
+                    # with open('/Users/ryan/Desktop/ShotQuality/nhlshotmodel.pkl', 'rb') as f:
+                    #     loaded_model = pickle.load(f)
+                    # pred = loaded_model.predict_proba(modelinput)[:, 1][0]
+                    # if pred*100 < 0:
+                    #     predstr = round(100*pred,8)
+                    # else:
+                    #     predstr = round(100*pred,2)
+                    # st.write(f"xGAct {xG*100}")
+                    st.subheader(f"xG: {modeldata['xG'].iloc[0]*100}%")
+                    report = get_team_scouting_report(data_summary)
         c1,c2 = st.columns(2)
         with c1:
             fig = px.histogram(df,x='shotDistance',title='Histogram of Shot Distance',color='shotType',opacity=0.5,color_discrete_map={0: 'red', 1: 'green'})
@@ -494,4 +652,3 @@ if season:
             fig = px.line(shotsPerGame,x='game_id',y='Shots',color='period',title='Shots Per Game')
             st.plotly_chart(fig)
 st.sidebar.markdown(f'Data from [moneypuck.com](https://moneypuck.com/)')
-
