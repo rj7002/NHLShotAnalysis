@@ -429,7 +429,7 @@ if season:
         df['color'] = np.where(df['event'] == 'GOAL','gold',np.where(df['event'] == 'SHOT', 'green', 'red'))
         modelinput = df[finalfeats]
         import pickle
-        with open('/Users/ryan/Desktop/ShotQuality/nhlshotmodel.pkl', 'rb') as f:
+        with open('nhlshotmodel.pkl', 'rb') as f:
             loaded_model = pickle.load(f)
         preds = loaded_model.predict_proba(modelinput)[:, 1]
         df['xG'] = preds
