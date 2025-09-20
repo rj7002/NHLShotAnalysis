@@ -10,7 +10,7 @@ st.set_page_config(page_title='NHL Shot Analysis',layout='wide',page_icon='🏒'
 st.sidebar.title('Filters')
 
 API_URL = "https://api.sambanova.ai/v1/chat/completions"
-API_KEY = "82c3b4bb-1d1b-4746-9ab6-21db50664370"
+API_KEY = st.secrets["api"]["key"]
 HEADERS = {
     'Authorization': f'Bearer {API_KEY}',
     'Content-Type': 'application/json'
