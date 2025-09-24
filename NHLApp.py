@@ -251,6 +251,11 @@ if season:
         period_options = df['period'].unique()
         selected_period = st.sidebar.multiselect("Select Period", period_options,default=period_options.tolist())
         df = df[df['period'].isin(selected_period)]
+        xGoal = st.sidebar.checkbox('xG')
+        if xGoal:
+            o = df['xG']
+        else:
+            o = 0.5
         if st.sidebar.toggle('Filter by players'):
             if filter == 'Shooter':
                 player_options = df['goalieNameForShot'].unique()
@@ -490,7 +495,7 @@ if season:
                     y=-df['xCordAdjusted'],
                     x=-df['yCordAdjusted'],
                     mode='markers',
-                    marker=dict(color=df['color'], size=10,opacity=df['xG'],symbol=df['symbol']),
+                    marker=dict(color=df['color'], size=10,opacity=o,symbol=df['symbol']),
                     showlegend=False,
                     name='End Points',
                     hovertext=hoverlabel,
@@ -599,7 +604,7 @@ if season:
                     x=df['xCord'],
                     y=df['yCord'],
                     mode='markers',
-                    marker=dict(color=df['color'], size=10,opacity=df['xG'],symbol=df['symbol']),
+                    marker=dict(color=df['color'], size=10,o,symbol=df['symbol']),
                     name='End Points',
                     hovertext=hoverlabel,
                     showlegend=False,
