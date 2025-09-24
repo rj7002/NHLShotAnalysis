@@ -522,7 +522,7 @@ if season:
                 # else:
                 #     predstr = round(100*pred,2)
                 # st.write(f"xGAct {xG*100}")
-                st.subheader(f"xG: {modeldata['xG'].iloc[0]*100}%")
+                st.subheader(f"xG: {round((modeldata['xG'].iloc[0]*100),2)}%")
                 report = get_team_scouting_report(data_summary)
             with col2:
                 fig = go.Figure()
