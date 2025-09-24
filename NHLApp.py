@@ -252,10 +252,6 @@ if season:
         selected_period = st.sidebar.multiselect("Select Period", period_options,default=period_options.tolist())
         df = df[df['period'].isin(selected_period)]
         xGoal = st.sidebar.checkbox('xG')
-        if xGoal:
-            o = df['xG']
-        else:
-            o = 0.5
         if st.sidebar.toggle('Filter by players'):
             if filter == 'Shooter':
                 player_options = df['goalieNameForShot'].unique()
@@ -439,6 +435,10 @@ if season:
             loaded_model = pickle.load(f)
         preds = loaded_model.predict_proba(modelinput)[:, 1]
         df['xG'] = preds
+        if xGoal:
+            o = df['xG']
+        else:
+            o = 0.5
         # Display the plot in Streamlit
         if filter != 'Team':
             byPlayer = df.groupby('shooterName').agg({'xG':'sum','goal':'sum','event':'count'}).reset_index()
