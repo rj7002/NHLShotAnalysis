@@ -193,6 +193,7 @@ st.markdown("<h1 style='text-align: center; font-size: 100px;'>NHL Shot Analysis
 season = st.selectbox('Select a season', list(range(2007,2026)))
 if season:
         df = load_data(season)
+        df['opposingTeam'] = df.apply(lambda row: row['awayTeamCode'] if row['teamCode'] != row['awayTeamCode'] else row['homeTeamCode'], axis=1)
         filter = st.selectbox('Filter by',['Shooter','Goalie','Team'])
         if filter == 'Shooter':
             playernames = df['shooterName'].unique()
@@ -250,7 +251,6 @@ if season:
         period_options = df['period'].unique()
         selected_period = st.sidebar.multiselect("Select Period", period_options,default=period_options.tolist())
         df = df[df['period'].isin(selected_period)]
-        xGoal = st.sidebar.checkbox('xG')
         if st.sidebar.toggle('Filter by players'):
             if filter == 'Shooter':
                 player_options = df['goalieNameForShot'].unique()
@@ -430,15 +430,26 @@ if season:
         df['color'] = np.where(df['event'] == 'GOAL','gold',np.where(df['event'] == 'SHOT', 'green', 'red'))
         modelinput = df[finalfeats]
         import pickle
-        with open('nhlshotmodel.pkl', 'rb') as f:
+        with open('/Users/ryan/Desktop/ShotQuality/nhlshotmodel.pkl', 'rb') as f:
             loaded_model = pickle.load(f)
         preds = loaded_model.predict_proba(modelinput)[:, 1]
         df['xG'] = preds
-        # st.write(df)
         # Display the plot in Streamlit
         if filter != 'Team':
+            byPlayer = df.groupby('shooterName').agg({'xG':'sum','goal':'sum','event':'count'}).reset_index()
+            byPlayer['xGOE'] = byPlayer['goal'] - byPlayer['xG']
+            byPlayer['xG%'] = byPlayer['xG']/byPlayer['event']
+            byPlayer['G%'] = byPlayer['goal']/byPlayer['event']
+            byPlayer = byPlayer.rename(columns={'event':'Shots','goal':'Goals'})
+            byPlayer = byPlayer.sort_values('xGOE',ascending=False)
             display_player_image(player_id=playerid,width2=300,caption2=f'{playername}')
         else:
+            byPlayer = df.groupby('teamCode').agg({'xG':'sum','goal':'sum','event':'count'}).reset_index()
+            byPlayer['xGOE'] = byPlayer['goal'] - byPlayer['xG']
+            byPlayer['xG%'] = byPlayer['xG']/byPlayer['event']
+            byPlayer['G%'] = byPlayer['goal']/byPlayer['event']
+            byPlayer = byPlayer.rename(columns={'event':'Shots','goal':'Goals'})
+            byPlayer = byPlayer.sort_values('xGOE',ascending=False)
             teamname = teamname.replace('.','')
             if teamname == 'SJ':
                 teamname = 'SJS'
@@ -448,6 +459,14 @@ if season:
                 teamname = 'LAK'
             display_player_image2(player_id=teamname,width2=400,caption2='')
         col1,col2 = st.columns(2)
+        with col1:
+            st.subheader(f'Shots: {byPlayer["Shots"].iloc[0]}')
+            st.subheader(f'Goals: {byPlayer["Goals"].iloc[0]}')
+            st.subheader(f'xGoals: {round(byPlayer["xG"].iloc[0],2)}')
+        with col2:
+            st.subheader(f'Goal%: {round(byPlayer["G%"].iloc[0]*100,2)}%')
+            st.subheader(f'xGoal%: {round(byPlayer["xG%"].iloc[0]*100,2)}%')
+            st.subheader(f'xGOE: {round(byPlayer["xGOE"].iloc[0],2)}')
         hoverlabel = df.apply(lambda row:f"""
                 <b>Shooter:</b> {row['shooterName']}<br>
                 <b>Goalie:</b> {row['goalieNameForShot']}<br>
@@ -467,28 +486,16 @@ if season:
         if rinktype == 'Half':
             with col1:
                 fig = go.Figure()
-                if xGoal:
-                    fig.add_trace(go.Scatter(
-                        y=-df['xCordAdjusted'],
-                        x=-df['yCordAdjusted'],
-                        mode='markers',
-                        marker=dict(color=df['color'], size=10,opacity=df['xG'],symbol=df['symbol']),
-                        showlegend=False,
-                        name='End Points',
-                        hovertext=hoverlabel,
-                            hoverinfo='text',
-                    ))
-                else:
-                    fig.add_trace(go.Scatter(
-                        y=-df['xCordAdjusted'],
-                        x=-df['yCordAdjusted'],
-                        mode='markers',
-                        marker=dict(color=df['color'], size=10,opacity=0.5,symbol=df['symbol']),
-                        showlegend=False,
-                        name='End Points',
-                        hovertext=hoverlabel,
-                            hoverinfo='text',
-                    ))
+                fig.add_trace(go.Scatter(
+                    y=-df['xCordAdjusted'],
+                    x=-df['yCordAdjusted'],
+                    mode='markers',
+                    marker=dict(color=df['color'], size=10,opacity=df['xG'],symbol=df['symbol']),
+                    showlegend=False,
+                    name='End Points',
+                    hovertext=hoverlabel,
+                        hoverinfo='text',
+                ))
                 create_hockey_rink(fig,setting='dzone',vertical=True)
                 data = st.plotly_chart(fig,on_select='rerun')
                 x = data["selection"]["points"][0]["x"]
@@ -588,28 +595,16 @@ if season:
                 st.plotly_chart(fig)
             with col1:
                 fig = go.Figure()
-                if xGoal:
-                    fig.add_trace(go.Scatter(
-                        y=df['yCord'],
-                        x=df['xCord'],
-                        mode='markers',
-                        marker=dict(color=df['color'], size=10,opacity=df['xG'],symbol=df['symbol']),
-                        showlegend=False,
-                        name='End Points',
-                        hovertext=hoverlabel,
-                            hoverinfo='text',
-                    ))
-                else:
-                    fig.add_trace(go.Scatter(
-                        y=df['yCord'],
-                        x=df['xCord'],
-                        mode='markers',
-                        marker=dict(color=df['color'], size=10,opacity=0.5,symbol=df['symbol']),
-                        showlegend=False,
-                        name='End Points',
-                        hovertext=hoverlabel,
-                            hoverinfo='text',
-                    ))
+                fig.add_trace(go.Scatter(
+                    x=df['xCord'],
+                    y=df['yCord'],
+                    mode='markers',
+                    marker=dict(color=df['color'], size=10,opacity=df['xG'],symbol=df['symbol']),
+                    name='End Points',
+                    hovertext=hoverlabel,
+                    showlegend=False,
+                        hoverinfo='text',
+                ))
                 create_hockey_rink(fig,setting='full',vertical=False)
                 data = st.plotly_chart(fig,on_select='rerun')
                 if data and 'selection' in data and 'points' in data['selection'] and len(data['selection']['points']) > 0:
@@ -669,11 +664,14 @@ if season:
             st.plotly_chart(fig)
         c5,c6 = st.columns(2)
         with c5:
-            shootTime = df.groupby(['shotType','shooterTimeOnIce'])['shotID'].count().reset_index().rename(columns={'shotID':'Shots'})
-            fig = px.line(shootTime,x='shooterTimeOnIce',y='Shots',color='shotType',title='Number of Shots Over Time')
+            shootTime = df.groupby(['shotType']).agg({'goal':'mean','xG':'mean'}).reset_index().rename(columns={'shotType':'Shot Type'})
+            fig = px.bar(shootTime,x='Shot Type',y='xG',title='Average xG by Shot Type',color='Shot Type')
+            fig.add_trace(go.Bar(x=shootTime['Shot Type'], y=shootTime['goal'], name='Actual Goals', marker_color='red'))
+            fig.update_traces(marker=dict(line=dict(color="black", width=2)))
             st.plotly_chart(fig)
         with c6:
-            shotsPerGame = df.groupby(['game_id','period'])['shotID'].count().reset_index().rename(columns={'shotID':'Shots'})
-            fig = px.line(shotsPerGame,x='game_id',y='Shots',color='period',title='Shots Per Game')
+            xFGvsG = df.groupby(['opposingTeam','game_id']).agg({'goal':'sum','xG':'sum'}).reset_index().rename(columns={'opposingTeam':'Opponent'})
+            fig = px.line(xFGvsG,x='Opponent',y='xG',title='Expected vs Actual Goals Per Game')
+            fig.add_trace(go.Scatter(x=xFGvsG['Opponent'], y=xFGvsG['goal'], mode='lines', name='Actual Goals', line=dict(color='red')))
             st.plotly_chart(fig)
 st.sidebar.markdown(f'Data from [moneypuck.com](https://moneypuck.com/)')
