@@ -676,7 +676,7 @@ if season:
             st.plotly_chart(fig)
         with c6:
             xFGvsG = df.groupby(['opposingTeam','game_id']).agg({'goal':'sum','xG':'sum'}).reset_index().rename(columns={'opposingTeam':'Opponent'})
-            fig = px.line(xFGvsG,x='Opponent',y='xG',title='Expected vs Actual Goals Per Game')
-            fig.add_trace(go.Scatter(x=xFGvsG['Opponent'], y=xFGvsG['goal'], mode='lines', name='Actual Goals', line=dict(color='red')))
+            fig = px.line(xFGvsG,x='game_id',y='xG',title='Expected vs Actual Goals Per Game')
+            fig.add_trace(go.Scatter(x=xFGvsG['game_id'], y=xFGvsG['goal'], mode='lines', name='Actual Goals', line=dict(color='red')))
             st.plotly_chart(fig)
 st.sidebar.markdown(f'Data from [moneypuck.com](https://moneypuck.com/)')
