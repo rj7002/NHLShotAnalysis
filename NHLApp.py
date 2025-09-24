@@ -604,7 +604,7 @@ if season:
                     x=df['xCord'],
                     y=df['yCord'],
                     mode='markers',
-                    marker=dict(color=df['color'], size=10,o,symbol=df['symbol']),
+                    marker=dict(color=df['color'], size=10,opacity=o,symbol=df['symbol']),
                     name='End Points',
                     hovertext=hoverlabel,
                     showlegend=False,
