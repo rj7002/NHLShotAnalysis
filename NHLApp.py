@@ -440,13 +440,21 @@ if season:
         else:
             o = 0.5
         # Display the plot in Streamlit
-        if filter != 'Team':
+        if filter == 'Shooter':
             byPlayer = df.groupby('shooterName').agg({'xG':'sum','goal':'sum','event':'count'}).reset_index()
             byPlayer['xGOE'] = byPlayer['goal'] - byPlayer['xG']
             byPlayer['xG%'] = byPlayer['xG']/byPlayer['event']
             byPlayer['G%'] = byPlayer['goal']/byPlayer['event']
             byPlayer = byPlayer.rename(columns={'event':'Shots','goal':'Goals'})
             byPlayer = byPlayer.sort_values('xGOE',ascending=False)
+            display_player_image(player_id=playerid,width2=300,caption2=f'{playername}')
+        elif filter == 'Goalie':
+            byPlayer = df.groupby('goalieNameForShot').agg({'xG':'sum','goal':'sum','event':'count'}).reset_index()
+            byPlayer['xGOE'] = byPlayer['goal'] - byPlayer['xG']
+            byPlayer['xG%'] = byPlayer['xG']/byPlayer['event']
+            byPlayer['G%'] = byPlayer['goal']/byPlayer['event']
+            byPlayer = byPlayer.rename(columns={'event':'Shots Against','goal':'Goals Against'})
+            byPlayer = byPlayer.sort_values('xGOE')
             display_player_image(player_id=playerid,width2=300,caption2=f'{playername}')
         else:
             byPlayer = df.groupby('teamCode').agg({'xG':'sum','goal':'sum','event':'count'}).reset_index()
@@ -464,14 +472,24 @@ if season:
                 teamname = 'LAK'
             display_player_image2(player_id=teamname,width2=400,caption2='')
         col1,col2 = st.columns(2)
-        with col1:
-            st.subheader(f'Shots: {byPlayer["Shots"].iloc[0]}')
-            st.subheader(f'Goals: {byPlayer["Goals"].iloc[0]}')
-            st.subheader(f'xGoals: {round(byPlayer["xG"].iloc[0],2)}')
-        with col2:
-            st.subheader(f'Goal%: {round(byPlayer["G%"].iloc[0]*100,2)}%')
-            st.subheader(f'xGoal%: {round(byPlayer["xG%"].iloc[0]*100,2)}%')
-            st.subheader(f'xGOE: {round(byPlayer["xGOE"].iloc[0],2)}')
+        if filter != 'Goalie':
+            with col1:
+                st.subheader(f'Shots: {byPlayer["Shots"].iloc[0]}')
+                st.subheader(f'Goals: {byPlayer["Goals"].iloc[0]}')
+                st.subheader(f'xGoals: {round(byPlayer["xG"].iloc[0],2)}')
+            with col2:
+                st.subheader(f'Goal%: {round(byPlayer["G%"].iloc[0]*100,2)}%')
+                st.subheader(f'xGoal%: {round(byPlayer["xG%"].iloc[0]*100,2)}%')
+                st.subheader(f'xGOE: {round(byPlayer["xGOE"].iloc[0],2)}')
+        else:
+            with col1:
+                st.subheader(f'Shots Against: {byPlayer["Shots Against"].iloc[0]}')
+                st.subheader(f'Goals Against: {byPlayer["Goals Against"].iloc[0]}')
+                st.subheader(f'xGoals Against: {round(byPlayer["xG"].iloc[0],2)}')
+            with col2:
+                st.subheader(f'Goal Against%: {round(byPlayer["G%"].iloc[0]*100,2)}%')
+                st.subheader(f'xGoal Against%: {round(byPlayer["xG%"].iloc[0]*100,2)}%')
+                st.subheader(f'xGOE: {round(byPlayer["xGOE"].iloc[0],2)}')
         hoverlabel = df.apply(lambda row:f"""
                 <b>Shooter:</b> {row['shooterName']}<br>
                 <b>Goalie:</b> {row['goalieNameForShot']}<br>
