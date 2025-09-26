@@ -693,7 +693,10 @@ if season:
             fig.update_traces(marker=dict(line=dict(color="black", width=2)))
             st.plotly_chart(fig)
         with c6:
-            xFGvsG = df.groupby(['opposingTeam','game_id']).agg({'goal':'sum','xG':'sum'}).reset_index().rename(columns={'opposingTeam':'Opponent'})
+            if filter != 'Goalie:
+                xFGvsG = df.groupby(['opposingTeam','game_id']).agg({'goal':'sum','xG':'sum'}).reset_index().rename(columns={'opposingTeam':'Opponent'})
+            else:
+                xFGvsG = df.groupby(['teamCode','game_id']).agg({'goal':'sum','xG':'sum'}).reset_index().rename(columns={'teamCode':'Opponent'})
             fig = px.line(xFGvsG,x='Opponent',y='xG',title='Expected vs Actual Goals Per Opponent')
             fig.add_trace(go.Scatter(x=xFGvsG['Opponent'], y=xFGvsG['goal'], mode='lines', name='Actual Goals', line=dict(color='red')))
             st.plotly_chart(fig)
