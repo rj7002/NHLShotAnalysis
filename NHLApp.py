@@ -693,7 +693,7 @@ if season:
             fig.update_traces(marker=dict(line=dict(color="black", width=2)))
             st.plotly_chart(fig)
         with c6:
-            if filter != 'Goalie:
+            if filter != 'Goalie':
                 xFGvsG = df.groupby(['opposingTeam','game_id']).agg({'goal':'sum','xG':'sum'}).reset_index().rename(columns={'opposingTeam':'Opponent'})
             else:
                 xFGvsG = df.groupby(['teamCode','game_id']).agg({'goal':'sum','xG':'sum'}).reset_index().rename(columns={'teamCode':'Opponent'})
