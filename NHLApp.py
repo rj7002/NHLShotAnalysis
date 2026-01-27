@@ -24,7 +24,7 @@ def get_team_scouting_report(player_summary):
                 # {"role": "system", "content": "You are an expert hockey scout analyzing data from a shot attempt from an NHL game. Give insights about the shot based on the data given and analyze the shot in detail."},
                 {
   "role": "system",
-  "content": "You are a professional NHL hockey scout analyzing a single shot attempt from a game. Based on the provided shot data, generate a standardized scouting report with the following structure:\n\n1. **Shot Overview** – Summarize key shot details (e.g., shooter, shot type, distance, angle, location).\n2. **Scoring Chance Assessment** – Rate the shot’s danger level (low / medium / high) and explain your reasoning.\n3. **Goaltender Analysis** – Evaluate the goalie’s likely positioning and difficulty in stopping the shot.\n4. **Play Context** – Describe how the shot likely developed (e.g., off a rush, rebound, cycle).\n5. **Scout’s Evaluation** – Give a concise expert opinion on the shot quality, player decision-making, and any notable observations.\n\nAlways respond using this five-part format. Keep tone professional, analytical, and concise."
+  "content": "You are a professional NHL hockey scout analyzing a single shot attempt from a game. Based on the provided shot , generate a standardized scouting report with the following structure:\n\n1. **Shot Overview** – Summarize key shot details (e.g., shooter, shot type, distance, angle, location).\n2. **Scoring Chance Assessment** – Rate the shot’s danger level (low / medium / high) and explain your reasoning.\n3. **Goaltender Analysis** – Evaluate the goalie’s likely positioning and difficulty in stopping the shot.\n4. **Play Context** – Describe how the shot likely developed (e.g., off a rush, rebound, cycle).\n5. **Scout’s Evaluation** – Give a concise expert opinion on the shot quality, player decision-making, and any notable observations.\n\nAlways respond using this five-part format. Keep tone professional, analytical, and concise."
 },
 
                 {"role": "user", "content": player_summary}
@@ -45,7 +45,7 @@ def get_team_scouting_report(player_summary):
             for line in response.iter_lines():
                 if line:
                     try:
-                        data = line.decode('utf-8')
+                         = line.decode('utf-8')
                         if data.startswith("data:"):  
                             response_data = data.split("data:")[1].strip()
                             
@@ -629,27 +629,49 @@ if season:
                         hoverinfo='text',
                 ))
                 create_hockey_rink(fig,setting='full',vertical=False)
-                data = st.plotly_chart(fig,on_select='rerun')
-                if data and 'selection' in data and 'points' in data['selection'] and len(data['selection']['points']) > 0:
-                    x = data["selection"]["points"][0]["x"]
-                    y = data["selection"]["points"][0]["y"]
+                st.plotly_chart(fig, on_select="rerun", key="shot_chart")
+                # if data and 'selection' in data and 'points' in data['selection'] and len(data['selection']['points']) > 0:
+                #     x = data["selection"]["points"][0]["x"]
+                #     y = data["selection"]["points"][0]["y"]
 
-                    modeldata = df[(df['xCord'] == x) & (df['yCord'] == y)]
-                    row_values_with_columns = [f"{col}: {value}" for col, value in modeldata.items()]
-                    data_summary = "\n".join(row_values_with_columns)
-                    # xG = modeldata['xGoal'].iloc[0]
-                    # modelinput = modeldata[finalfeats]
-                    # import pickle
-                    # with open('/Users/ryan/Desktop/ShotQuality/nhlshotmodel.pkl', 'rb') as f:
-                    #     loaded_model = pickle.load(f)
-                    # pred = loaded_model.predict_proba(modelinput)[:, 1][0]
-                    # if pred*100 < 0:
-                    #     predstr = round(100*pred,8)
-                    # else:
-                    #     predstr = round(100*pred,2)
-                    # st.write(f"xGAct {xG*100}")
-                    st.subheader(f"xG: {modeldata['xG'].iloc[0]*100}%")
-                    report = get_team_scouting_report(data_summary)
+                #     modeldata = df[(df['xCord'] == x) & (df['yCord'] == y)]
+                #     row_values_with_columns = [f"{col}: {value}" for col, value in modeldata.items()]
+                #     data_summary = "\n".join(row_values_with_columns)
+                #     # xG = modeldata['xGoal'].iloc[0]
+                #     # modelinput = modeldata[finalfeats]
+                #     # import pickle
+                #     # with open('/Users/ryan/Desktop/ShotQuality/nhlshotmodel.pkl', 'rb') as f:
+                #     #     loaded_model = pickle.load(f)
+                #     # pred = loaded_model.predict_proba(modelinput)[:, 1][0]
+                #     # if pred*100 < 0:
+                #     #     predstr = round(100*pred,8)
+                #     # else:
+                #     #     predstr = round(100*pred,2)
+                #     # st.write(f"xGAct {xG*100}")
+                #     st.subheader(f"xG: {modeldata['xG'].iloc[0]*100}%")
+                #     report = get_team_scouting_report(data_summary)
+                selection = st.session_state.get("shot_chart")
+
+                if (
+                    selection
+                    and "selection" in selection
+                    and "points" in selection["selection"]
+                    and len(selection["selection"]["points"]) > 0
+                ):
+                    x = selection["selection"]["points"][0]["x"]
+                    y = selection["selection"]["points"][0]["y"]
+                
+                    modeldata = df[(df["xCord"] == x) & (df["yCord"] == y)]
+                
+                    if not modeldata.empty:
+                        row_values_with_columns = [
+                            f"{col}: {value}" for col, value in modeldata.iloc[0].items()
+                        ]
+                        data_summary = "\n".join(row_values_with_columns)
+                
+                        st.subheader(f"xG: {modeldata['xG'].iloc[0] * 100:.2f}%")
+                        report = get_team_scouting_report(data_summary)
+
         c1,c2 = st.columns(2)
         with c1:
             fig = px.histogram(df,x='shotDistance',title='Histogram of Shot Distance',color='shotType',opacity=0.5,color_discrete_map={0: 'red', 1: 'green'})
