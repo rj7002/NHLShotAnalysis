@@ -45,7 +45,7 @@ def get_team_scouting_report(player_summary):
             for line in response.iter_lines():
                 if line:
                     try:
-                         = line.decode('utf-8')
+                        data = line.decode('utf-8')
                         if data.startswith("data:"):  
                             response_data = data.split("data:")[1].strip()
                             
