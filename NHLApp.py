@@ -252,7 +252,7 @@ if season:
         selected_period = st.sidebar.multiselect("Select Period", period_options,default=period_options.tolist())
         df = df[df['period'].isin(selected_period)]
         xGoal = st.sidebar.checkbox('xG')
-        if st.sidebar.toggle('Filter by players'):
+        if st.sidebar.checkbox('Filter by players'):
             if filter == 'Shooter':
                 player_options = df['goalieNameForShot'].unique()
                 selected_player = st.sidebar.multiselect("Select Goalie", player_options,default=player_options.tolist())
