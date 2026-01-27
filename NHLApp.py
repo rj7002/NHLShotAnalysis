@@ -520,13 +520,14 @@ if season:
                         hoverinfo='text',
                 ))
                 create_hockey_rink(fig,setting='dzone',vertical=True)
-                data = st.plotly_chart(fig,on_select='rerun')
-                x = data["selection"]["points"][0]["x"]
-                y = data["selection"]["points"][0]["y"]
+                st.plotly_chart(fig)
+                # data = st.plotly_chart(fig,on_select='rerun')
+                # x = data["selection"]["points"][0]["x"]
+                # y = data["selection"]["points"][0]["y"]
 
-                modeldata = df[(df['xCord'] == x) & (df['yCord'] == y)]
-                row_values_with_columns = [f"{col}: {value}" for col, value in modeldata.items()]
-                data_summary = "\n".join(row_values_with_columns)
+                # modeldata = df[(df['xCord'] == x) & (df['yCord'] == y)]
+                # row_values_with_columns = [f"{col}: {value}" for col, value in modeldata.items()]
+                # data_summary = "\n".join(row_values_with_columns)
 
 
                 # xG = modeldata['xGoal'].iloc[0]
@@ -540,8 +541,8 @@ if season:
                 # else:
                 #     predstr = round(100*pred,2)
                 # st.write(f"xGAct {xG*100}")
-                st.subheader(f"xG: {modeldata['xG'].iloc[0]*100:.2f}%")
-                report = get_team_scouting_report(data_summary)
+                # st.subheader(f"xG: {modeldata['xG'].iloc[0]*100:.2f}%")
+                # report = get_team_scouting_report(data_summary)
             with col2:
                 fig = go.Figure()
                 fig.add_trace(go.Histogram2dContour(
@@ -629,7 +630,8 @@ if season:
                         hoverinfo='text',
                 ))
                 create_hockey_rink(fig,setting='full',vertical=False)
-                st.plotly_chart(fig, on_select="rerun", key="shot_chart")
+                st.plotly_chart(fig)
+                # st.plotly_chart(fig, on_select="rerun", key="shot_chart")
                 # if data and 'selection' in data and 'points' in data['selection'] and len(data['selection']['points']) > 0:
                 #     x = data["selection"]["points"][0]["x"]
                 #     y = data["selection"]["points"][0]["y"]
@@ -650,27 +652,27 @@ if season:
                 #     # st.write(f"xGAct {xG*100}")
                 #     st.subheader(f"xG: {modeldata['xG'].iloc[0]*100}%")
                 #     report = get_team_scouting_report(data_summary)
-                selection = st.session_state.get("shot_chart")
+                # selection = st.session_state.get("shot_chart")
 
-                if (
-                    selection
-                    and "selection" in selection
-                    and "points" in selection["selection"]
-                    and len(selection["selection"]["points"]) > 0
-                ):
-                    x = selection["selection"]["points"][0]["x"]
-                    y = selection["selection"]["points"][0]["y"]
+                # if (
+                #     selection
+                #     and "selection" in selection
+                #     and "points" in selection["selection"]
+                #     and len(selection["selection"]["points"]) > 0
+                # ):
+                #     x = selection["selection"]["points"][0]["x"]
+                #     y = selection["selection"]["points"][0]["y"]
                 
-                    modeldata = df[(df["xCord"] == x) & (df["yCord"] == y)]
+                #     modeldata = df[(df["xCord"] == x) & (df["yCord"] == y)]
                 
-                    if not modeldata.empty:
-                        row_values_with_columns = [
-                            f"{col}: {value}" for col, value in modeldata.iloc[0].items()
-                        ]
-                        data_summary = "\n".join(row_values_with_columns)
+                #     if not modeldata.empty:
+                #         row_values_with_columns = [
+                #             f"{col}: {value}" for col, value in modeldata.iloc[0].items()
+                #         ]
+                #         data_summary = "\n".join(row_values_with_columns)
                 
-                        st.subheader(f"xG: {modeldata['xG'].iloc[0] * 100:.2f}%")
-                        report = get_team_scouting_report(data_summary)
+                #         st.subheader(f"xG: {modeldata['xG'].iloc[0] * 100:.2f}%")
+                #         report = get_team_scouting_report(data_summary)
 
         c1,c2 = st.columns(2)
         with c1:
