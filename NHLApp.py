@@ -435,7 +435,6 @@ if season:
             loaded_model = pickle.load(f)
         preds = loaded_model.predict_proba(modelinput)[:, 1]
         df['xG'] = preds
-        st.write(df)
         if xGoal:
             o = df['xG']
         else:
